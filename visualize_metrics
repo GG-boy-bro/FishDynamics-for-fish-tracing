@@ -1,0 +1,73 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ===========================
+#  读取 CSV（改成你的路径）
+# ===========================
+csv_path = r"D:/Desk/fish_metrics.csv"
+df = pd.read_csv(csv_path)
+
+# 丢掉空值
+df = df.dropna(subset=["F"])
+
+# 时间轴
+t = df["time_sec"].values
+
+# 指标
+A = df["A_m_s"].values
+H = df["H_entropy"].values
+D = df["D_m"].values
+VarA = df["VarA_m2"].values
+KE = df["KE_J"].values
+Pdrag = df["Pdrag_W"].values
+F = df["F"].values
+
+# ===========================
+#  绘制 7 指标总览
+# ===========================
+plt.figure(figsize=(16, 12))
+
+plt.subplot(4, 2, 1)
+plt.plot(t, A); plt.title("平均速度 A (m/s)")
+
+plt.subplot(4, 2, 2)
+plt.plot(t, H); plt.title("方向熵 H (0~1)")
+
+plt.subplot(4, 2, 3)
+plt.plot(t, D); plt.title("空间离散度 D (m)")
+
+plt.subplot(4, 2, 4)
+plt.plot(t, VarA); plt.title("椭圆面积方差 Var(A) (m²)")
+
+plt.subplot(4, 2, 5)
+plt.plot(t, KE); plt.title("平均动能 KE (J)")
+
+plt.subplot(4, 2, 6)
+plt.plot(t, Pdrag); plt.title("阻力功率 Pdrag (W)")
+
+plt.subplot(4, 2, 7)
+plt.plot(t, F, linewidth=2, color='red'); plt.title("综合摄食强度 F")
+plt.xlabel("时间 (秒)")
+
+plt.tight_layout()
+plt.savefig("metrics_plot.png", dpi=300)
+plt.close()
+
+print("✅ 指标图已保存 metrics_plot.png")
+
+# ===========================
+#  单独绘制 F 曲线（论文图）
+# ===========================
+
+plt.figure(figsize=(12,4))
+plt.plot(t, F, linewidth=2.5, color='red')
+plt.title("综合摄食强度 F(t)")
+plt.xlabel("时间 (秒)")
+plt.ylabel("F")
+plt.grid(alpha=0.4)
+plt.tight_layout()
+plt.savefig("F_curve.png", dpi=300)
+plt.close()
+
+print("✅ F 曲线已保存 F_curve.png")
