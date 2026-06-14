@@ -509,4 +509,49 @@ def process_video(
         "f_curve_png": f_curve_png,
 }
 
+# 写 CSV
+    df_tracks = pd.DataFrame(track_records)
+    df_tracks.to_csv(tracks_csv, index=False, encoding="utf-8-sig")
+
+    if len(group_records) > 0:
+        df_group = pd.DataFrame(group_records)
+
+        # Z-score 标准化处理
+        for col in ["K_bl_mean", "P_drag_mean", "D_density", "H_angle"]:
+            mu = float(df_group[col].mean())
+            sigma = float(df_group[col].std())
+            if sigma < 1e-9:
+                df_group[col + "_z"] = 0.0
+            else:
+                df_group[col + "_z"] = (df_group[col] - mu) / sigma
+
+        # 摄食强度指数 F 计算（加权综合指标）
+        wK, wP, wD, wH = 0.3, 0.3, 0.2, 0.2
+        df_group["F"] = (
+            wK * df_group["K_bl_mean_z"] +
+            wP * df_group["P_drag_mean_z"] +
+            wD * df_group["D_density_z"] +
+            wH * df_group["H_angle_z"]
+        )
+        df_group.to_csv(group_csv, index=False, encoding="utf-8-sig")
+    else:
+        df_group = pd.DataFrame(columns=["frame","N_active","K_bl_mean","P_drag_mean","D_density","H_angle","F"])
+        df_group.to_csv(group_csv, index=False, encoding="utf-8-sig")
+
+    # 调用绘图模块生成可视化结果
+    from .plotting import plot_group_metrics
+    plot_group_metrics(group_csv, plot_png, f_curve_png)	
+
+    # 进度回调通知完成
+    if progress_cb is not None:
+        progress_cb(100, "完成")
+
+    # 返回所有输出文件路径
+    return {
+        "out_video": out_video,
+        "tracks_csv": tracks_csv,
+        "group_csv": group_csv,
+        "plot_png": plot_png,
+        "f_curve_png": f_curve_png,
+    }
 
